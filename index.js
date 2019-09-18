@@ -190,6 +190,28 @@ function formatSubtitle(metadata) {
   return ret;
 }
 
+function formatPlainText(metadata) {
+  let text = '';
+
+  if (metadata.grandparentTitle) {
+    if (metadata.type === 'track') {
+      text = metadata.parentTitle;
+    } else if (metadata.index && metadata.parentIndex) {
+      text = `S${metadata.parentIndex} E${metadata.index}`;
+    } else if (metadata.originallyAvailableAt) {
+      text = metadata.originallyAvailableAt;
+    }
+
+    if (metadata.title) {
+      text += ' - ' + metadata.title;
+    }
+  } else if (metadata.type === 'movie') {
+    text = metadata.tagline;
+  }
+
+  return text;
+}
+
 function notifySlack(imageUrl, payload, location, action) {
   let locationText = '';
 
@@ -203,7 +225,7 @@ function notifySlack(imageUrl, payload, location, action) {
     username: 'Plex',
     icon_emoji: ':plex:',
     attachments: [{
-      fallback: 'Required plain-text summary of the attachment.',
+      fallback: formatPlainText(payload.Metadata),
       color: '#a67a2d',
       title: formatTitle(payload.Metadata),
       text: formatSubtitle(payload.Metadata),
@@ -221,7 +243,7 @@ function notifySlackNew(imageUrl, payload) {
     username: 'Plex',
     icon_emoji: ':plex:',
     attachments: [{
-      fallback: 'Required plain-text summary of the attachment.',
+      fallback: formatPlainText(payload.Metadata),
       color: '#a67a2d',
       title: formatTitle(payload.Metadata),
       text: formatSubtitle(payload.Metadata),
