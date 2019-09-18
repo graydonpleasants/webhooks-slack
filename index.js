@@ -53,7 +53,7 @@ app.post('/', upload.single('thumb'), async (req, res, next) => {
   let image = await redis.getBuffer(key);
 
   // save new image
-  if (payload.event === 'media.play' || payload.event === 'media.rate') {
+  if (payload.event === 'media.play' || payload.event === 'media.rate' || payload.event === 'library.new') {
     if (image) {
       console.log('[REDIS]', `Using cached image ${key}`);
     } else {
@@ -106,6 +106,17 @@ app.post('/', upload.single('thumb'), async (req, res, next) => {
     } else {
       console.log('[SLACK]', `Sending ${key} without image`);
       notifySlack(null, payload, location, action);
+    }
+  }
+
+  if (payload.event === 'library.new') {
+    console.log('[library.new payload]', payload);
+    if (image) {
+      console.log('[SLACK]', `Sending ${key} with image`);
+      notifySlackNew(appURL + '/images/' + key, payload);
+    } else {
+      console.log('[SLACK]', `Sending ${key} without image`);
+      notifySlackNew(null, payload);
     }
   }
 
@@ -198,6 +209,24 @@ function notifySlack(imageUrl, payload, location, action) {
       text: formatSubtitle(payload.Metadata),
       thumb_url: imageUrl,
       footer: `${action} by ${payload.Account.title} on ${payload.Player.title} from ${payload.Server.title} ${locationText}`,
+      footer_icon: payload.Account.thumb
+    }]
+  }, () => {});
+}
+
+function notifySlackNew(imageUrl, payload) {
+
+  slack.webhook({
+    channel,
+    username: 'Plex',
+    icon_emoji: ':plex:',
+    attachments: [{
+      fallback: 'Required plain-text summary of the attachment.',
+      color: '#a67a2d',
+      title: formatTitle(payload.Metadata),
+      text: formatSubtitle(payload.Metadata),
+      thumb_url: imageUrl,
+      footer: `added on ${payload.Server.title}`,
       footer_icon: payload.Account.thumb
     }]
   }, () => {});
