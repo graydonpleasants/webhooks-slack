@@ -39,6 +39,7 @@ app.listen(port, () => {
 
 app.post('/', upload.single('thumb'), async (req, res, next) => {
   const payload = JSON.parse(req.body.payload);
+  console.log('[payload]', payload);
   const isVideo = (payload.Metadata.librarySectionType === 'movie' || payload.Metadata.librarySectionType === 'show');
   const isAudio = (payload.Metadata.librarySectionType === 'artist');
   const key = sha1(payload.Server.uuid + payload.Metadata.ratingKey);
